@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamification for Rabies Control - Role-play Simulation</title>
+    <!-- โหลด Phaser.js จาก CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: 'Sarabun', sans-serif, Arial;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+class RabiesRoleplayScene extends Phaser.Scene {
+    constructor() {
+        super('RabiesRoleplayScene');
+    }
+
+    create() {
+        // หัวข้อเกมและความยาวเป้าหมาย (10 นาที)
+        this.add.text(50, 30, 'สถานการณ์จำลองโรคพิษสุนัขบ้า (Role-play Simulation)', { fontSize: '20px', fill: '#f1c40f', fontStyle: 'bold' });
+
+        // กล่องข้อความสถานการณ์ที่ 1 (ตัวอย่างการสังเกตอาการเซื่องซึม)
+        this.add.text(50, 90, 'สถานการณ์: คุณพบสุนัขของเพื่อนบ้านมีอาการซึม เดินโซซัดโซเซ และไม่ยอมกินข้าว', { 
+            fontSize: '16px', 
+            fill: '#ffffff',
+            wordWrap: { width: 700 }
+        });
+
+        // ปุ่มเลือกที่ 1 (เสี่ยง/ผิด)
+        let btn1 = this.add.rectangle(400, 220, 600, 50, 0xc0392b).setInteractive();
+        this.add.text(140, 210, '1. เข้าไปอุ้มและป้อนน้ำ เพราะคิดว่าแค่ป่วยธรรมดา', { fontSize: '15px', fill: '#fff' });
+
+        // ปุ่มเลือกที่ 2 (ถูกต้อง)
+        let btn2 = this.add.rectangle(400, 300, 600, 50, 0x27ae60).setInteractive();
+        this.add.text(140, 290, '2. หลีกเลี่ยงการเข้าใกล้ และรีบแจ้งเจ้าหน้าที่/ปศุสัตว์', { fontSize: '15px', fill: '#fff' });
+
+        // เหตุการณ์เมื่อคลิกปุ่มที่ 1
+        btn1.on('pointerdown', () => {
+            this.sendActionLog('scenario_02_symptom', 'Approached lethargic dog', false);
+        });
+
+        // เหตุการณ์เมื่อคลิกปุ่มที่ 2
+        btn2.on('pointerdown', () => {
+            this.sendActionLog('scenario_02_symptom', 'Kept distance and reported', true);
+        });
+    }
+
+    // ฟังก์ชันส่ง Action Log ไปยัง Backend อัตโนมัติ
+    sendActionLog(scenarioId, actionChosen, isCorrect) {
+        const logData = {
+            username: "Player_Test_01", // รหัสผู้ใช้หรือ Anonymous Username ตามงานวิจัย[cite: 2]
+            scenarioId: scenarioId,
+            actionChosen: actionChosen,
+            isCorrect: isCorrect
+        };
+
+        fetch('http://localhost:5000/api/action-logs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(logData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(isCorrect) {
+                alert("ยอดเยี่ยม! คุณตัดสินใจถูกต้องตามหลักการควบคุมโรคพิษสุนัขบ้า");
+            } else {
+                alert("คำเตือน: อาการเซื่องซึมอาจเป็นสัญญาณโรคพิษสุนัขบ้า การเข้าใกล้มีความเสี่ยงติดเชื้อ 100%[cite: 1]");
+            }
+            console.log('Action Log Saved:', data);
+        })
+        .catch((error) => {
+            console.error('Error connecting to backend:', error);
+        });
+    }
+}
+
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 500,
+    backgroundColor: '#2c3e50',
+    scene: RabiesRoleplayScene
+};
+
+const game = new Phaser.Game(config);
+</script>
+
+</body>
+</html>
